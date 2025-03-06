@@ -1,16 +1,47 @@
+export interface ProjectMember {
+  id: string;
+  userId: string;
+  projectId: string;
+  role: string;
+  joinedAt: string;
+}
+
+export interface ProjectDocument {
+  id: string;
+  projectId: string;
+  name: string;
+  url: string;
+  type: string;
+  size?: number;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
 export interface Project {
   id: string;
   name: string;
   description?: string;
-  client?: string;
-  location?: string;
-  start_date?: string;
-  end_date?: string;
+  status: string;
+  startDate?: string;
+  endDate?: string;
   budget?: number;
-  status?: 'planning' | 'in_progress' | 'completed' | 'on_hold';
-  created_at: string;
-  updated_at?: string;
-  created_by?: string;
+  progress: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt?: string;
+  clientId?: string;
+  clientName?: string;
+  teamMembers?: ProjectMember[];
+  documents?: ProjectDocument[];
+  tags?: string[];
+}
+
+export interface ProjectStatistics {
+  total: number;
+  active: number;
+  completed: number;
+  onHold: number;
+  overdue: number;
 }
 
 export interface Task {

@@ -4,46 +4,49 @@ import { User } from '../types/User';
 import '../styles/Header.css';
 
 interface HeaderProps {
-  user: User | null;
+  user: User;
 }
 
 const Header: React.FC<HeaderProps> = ({ user }) => {
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  
+
   const getPageTitle = () => {
     const path = location.pathname;
     
     if (path === '/') return 'Dashboard';
-    if (path === '/projects') return 'Projects';
-    if (path.startsWith('/projects/new')) return 'Create New Project';
-    if (path.startsWith('/projects/')) return 'Project Details';
-    if (path === '/tasks') return 'Tasks';
-    if (path === '/documents') return 'Documents';
-    if (path === '/team') return 'Team';
-    if (path === '/reports') return 'Reports';
-    if (path === '/schedule') return 'Schedule';
-    if (path === '/budget') return 'Budget';
+    if (path.startsWith('/projects')) {
+      if (path === '/projects/new') return 'New Project';
+      if (path.includes('/projects/')) return 'Project Details';
+      return 'Projects';
+    }
+    if (path.startsWith('/tasks')) return 'Tasks';
     if (path === '/settings') return 'Settings';
-    if (path === '/help') return 'Help Center';
+    if (path === '/about') return 'About';
+    if (path === '/contact') return 'Contact';
     if (path === '/terms') return 'Terms of Service';
     if (path === '/privacy') return 'Privacy Policy';
     
-    return 'Not Found';
+    return 'ProCore';
   };
-  
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Implement search functionality
+      console.log('Searching for:', searchQuery);
+    }
+  };
+
   const toggleUserMenu = () => {
     setShowUserMenu(!showUserMenu);
   };
-  
-  const handleLogout = () => {
-    navigate('/login');
-  };
-  
-  const handleProfileClick = () => {
-    navigate('/settings');
+
+  const handleUserMenuClick = (path: string) => {
     setShowUserMenu(false);
+    navigate(path);
   };
 
   return (
@@ -51,58 +54,57 @@ const Header: React.FC<HeaderProps> = ({ user }) => {
       <h1 className="page-title">{getPageTitle()}</h1>
       
       <div className="header-actions">
-        <div className="search-bar">
-          <i className="fas fa-search"></i>
-          <input type="text" placeholder="Search..." />
-        </div>
+        <form className="search-bar" onSubmit={handleSearch}>
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button type="submit" className="search-btn">
+            🔍
+          </button>
+        </form>
         
         <button className="notification-btn">
-          <i className="fas fa-bell"></i>
+          🔔
           <span className="notification-badge">3</span>
         </button>
         
         <div className="user-menu-container">
           <button className="user-menu-btn" onClick={toggleUserMenu}>
-            <img 
-              src={user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}`} 
-              alt={user?.name || 'User'} 
-              className="user-avatar"
-            />
-            <span className="user-name">{user?.name || 'User'}</span>
-            <i className={`fas fa-chevron-${showUserMenu ? 'up' : 'down'}`}></i>
+            <div className="user-avatar">
+              {user.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} />
+              ) : (
+                <div className="avatar-placeholder">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+            <span className="user-name">{user.name}</span>
           </button>
           
           {showUserMenu && (
-            <div className="user-dropdown">
-              <div className="user-dropdown-header">
-                <img 
-                  src={user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}`} 
-                  alt={user?.name || 'User'} 
-                  className="user-avatar-large"
-                />
+            <div className="user-menu">
+              <div className="user-menu-header">
                 <div className="user-info">
-                  <span className="user-name">{user?.name || 'User'}</span>
-                  <span className="user-email">{user?.email || 'user@example.com'}</span>
-                  <span className="user-role">{user?.role?.replace('_', ' ') || 'User'}</span>
+                  <p className="user-name">{user.name}</p>
+                  <p className="user-email">{user.email}</p>
                 </div>
               </div>
-              
-              <div className="user-dropdown-menu">
-                <button onClick={handleProfileClick}>
-                  <i className="fas fa-user"></i>
-                  Profile
-                </button>
-                <button onClick={() => navigate('/settings')}>
-                  <i className="fas fa-cog"></i>
+              <div className="user-menu-items">
+                <button onClick={() => handleUserMenuClick('/settings')}>
                   Settings
                 </button>
-                <button onClick={() => navigate('/help')}>
-                  <i className="fas fa-question-circle"></i>
-                  Help
+                <button onClick={() => handleUserMenuClick('/settings?tab=profile')}>
+                  Profile
                 </button>
-                <button onClick={handleLogout} className="logout-btn">
-                  <i className="fas fa-sign-out-alt"></i>
-                  Logout
+                <button onClick={() => handleUserMenuClick('/settings?tab=notifications')}>
+                  Notifications
+                </button>
+                <button onClick={() => handleUserMenuClick('/settings?tab=security')}>
+                  Security
                 </button>
               </div>
             </div>

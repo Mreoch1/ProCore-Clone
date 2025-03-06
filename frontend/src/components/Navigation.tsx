@@ -1,94 +1,108 @@
 import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { signOut } from '../utils/supabaseClient';
 import '../styles/Navigation.css';
 
 const Navigation: React.FC = () => {
-  const navigate = useNavigate();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  
-  const handleLogout = async () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+
+  const handleToggleCollapse = () => {
+    setCollapsed(!collapsed);
+  };
+
+  const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/login');
+      window.location.href = '/login';
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
-  
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+
+  const isActive = (path: string) => {
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
   return (
-    <nav className={`navigation ${isCollapsed ? 'collapsed' : ''}`}>
+    <nav className={`navigation ${collapsed ? 'collapsed' : ''}`}>
       <div className="nav-header">
         <div className="logo">
-          <img src="/logo.svg" alt="Recon Logo" />
-          {!isCollapsed && <span>Recon</span>}
+          {collapsed ? 'PC' : 'ProCore'}
         </div>
-        <button className="collapse-btn" onClick={toggleCollapse}>
-          <i className={`fas fa-${isCollapsed ? 'chevron-right' : 'chevron-left'}`}></i>
+        <button 
+          className="collapse-toggle" 
+          onClick={handleToggleCollapse}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? '→' : '←'}
         </button>
       </div>
-      
-      <div className="nav-links">
-        <NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-home"></i>
-          {!isCollapsed && <span>Dashboard</span>}
-        </NavLink>
-        
-        <NavLink to="/projects" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-project-diagram"></i>
-          {!isCollapsed && <span>Projects</span>}
-        </NavLink>
-        
-        <NavLink to="/tasks" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-tasks"></i>
-          {!isCollapsed && <span>Tasks</span>}
-        </NavLink>
-        
-        <NavLink to="/documents" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-file-alt"></i>
-          {!isCollapsed && <span>Documents</span>}
-        </NavLink>
-        
-        <NavLink to="/team" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-users"></i>
-          {!isCollapsed && <span>Team</span>}
-        </NavLink>
-        
-        <NavLink to="/reports" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-chart-bar"></i>
-          {!isCollapsed && <span>Reports</span>}
-        </NavLink>
-        
-        <NavLink to="/schedule" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-calendar-alt"></i>
-          {!isCollapsed && <span>Schedule</span>}
-        </NavLink>
-        
-        <NavLink to="/budget" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-dollar-sign"></i>
-          {!isCollapsed && <span>Budget</span>}
-        </NavLink>
+
+      <div className="nav-content">
+        <ul className="nav-menu">
+          <li className="nav-item">
+            <NavLink 
+              to="/" 
+              className={`nav-link ${isActive('/') && !isActive('/projects') && !isActive('/tasks') ? 'active' : ''}`}
+              title="Dashboard"
+            >
+              <span className="nav-icon">📊</span>
+              <span className="nav-text">Dashboard</span>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink 
+              to="/projects" 
+              className={`nav-link ${isActive('/projects') ? 'active' : ''}`}
+              title="Projects"
+            >
+              <span className="nav-icon">📁</span>
+              <span className="nav-text">Projects</span>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <NavLink 
+              to="/tasks" 
+              className={`nav-link ${isActive('/tasks') ? 'active' : ''}`}
+              title="Tasks"
+            >
+              <span className="nav-icon">✓</span>
+              <span className="nav-text">Tasks</span>
+            </NavLink>
+          </li>
+        </ul>
+
+        <div className="nav-divider"></div>
+
+        <ul className="nav-menu">
+          <li className="nav-item">
+            <NavLink 
+              to="/settings" 
+              className={`nav-link ${isActive('/settings') ? 'active' : ''}`}
+              title="Settings"
+            >
+              <span className="nav-icon">⚙️</span>
+              <span className="nav-text">Settings</span>
+            </NavLink>
+          </li>
+          <li className="nav-item">
+            <button 
+              className="nav-link sign-out-btn" 
+              onClick={handleSignOut}
+              title="Sign Out"
+            >
+              <span className="nav-icon">🚪</span>
+              <span className="nav-text">Sign Out</span>
+            </button>
+          </li>
+        </ul>
       </div>
-      
+
       <div className="nav-footer">
-        <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-cog"></i>
-          {!isCollapsed && <span>Settings</span>}
-        </NavLink>
-        
-        <NavLink to="/help" className={({ isActive }) => isActive ? 'active' : ''}>
-          <i className="fas fa-question-circle"></i>
-          {!isCollapsed && <span>Help</span>}
-        </NavLink>
-        
-        <button className="logout-btn" onClick={handleLogout}>
-          <i className="fas fa-sign-out-alt"></i>
-          {!isCollapsed && <span>Logout</span>}
-        </button>
+        <div className="app-version">
+          <span className="nav-text">v1.0.0</span>
+        </div>
       </div>
     </nav>
   );

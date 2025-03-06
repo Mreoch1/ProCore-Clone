@@ -1,12 +1,19 @@
 export interface User {
   id: string;
-  email: string;
   name: string;
+  email: string;
+  avatarUrl?: string;
   role: 'admin' | 'project_manager' | 'team_member' | 'client';
-  company?: string;
-  position?: string;
-  phone?: string;
-  avatar_url?: string;
-  created_at?: string;
-  last_sign_in_at?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserPreferences {
+  theme: 'light' | 'dark' | 'system';
+  notifications: {
+    email: boolean;
+    push: boolean;
+    inApp: boolean;
+  };
+  language: string;
 } 

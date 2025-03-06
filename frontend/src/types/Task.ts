@@ -2,35 +2,44 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  project_id: string;
-  status: 'todo' | 'in_progress' | 'review' | 'completed' | 'blocked';
-  priority: 'low' | 'medium' | 'high';
-  assignee_id?: string;
-  due_date?: string;
-  estimated_hours?: number;
-  actual_hours?: number;
-  created_at: string;
-  updated_at?: string;
-  created_by?: string;
+  projectId: string;
+  status: string;
+  priority: string;
+  assigneeId?: string;
+  dueDate?: string;
+  estimatedHours?: number;
+  actualHours?: number;
+  createdAt: string;
+  updatedAt?: string;
+  createdBy?: string;
+  completedAt?: string;
   comments?: TaskComment[];
   attachments?: TaskAttachment[];
+  dependencies?: string[];
+  progress?: number;
 }
 
 export interface TaskComment {
   id: string;
-  task_id: string;
-  user_id: string;
-  content: string;
-  created_at: string;
+  text: string;
+  userId: string;
+  userName: string;
+  createdAt: string;
 }
 
 export interface TaskAttachment {
   id: string;
-  task_id: string;
-  file_name: string;
-  file_type: string;
-  file_size: number;
-  file_url: string;
-  uploaded_by: string;
-  created_at: string;
+  name: string;
+  url: string;
+  uploadedBy: string;
+  uploadedAt: string;
+}
+
+export interface TaskStatistics {
+  total: number;
+  completed: number;
+  inProgress: number;
+  review: number;
+  todo: number;
+  overdue: number;
 } 

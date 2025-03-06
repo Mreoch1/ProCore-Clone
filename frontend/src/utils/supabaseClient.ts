@@ -1,167 +1,505 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { User } from '../types/User';
 import { Project } from '../types/Project';
 import { Task } from '../types/Task';
 import { Document } from '../types/Document';
 
 // Initialize Supabase client
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  console.error('Missing Supabase environment variables. Check your .env file.');
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Authentication functions
-export const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
-  return await supabase.auth.signInWithPassword({
+export const signIn = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
-    options: {
-      // Set session expiry based on remember me option
-      expiresIn: rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60 // 30 days or 1 day
-    }
   });
+  
+  if (error) throw error;
+  return data;
 };
 
-export const signUp = async (email: string, password: string, metadata: any) => {
-  return await supabase.auth.signUp({
+export const signUp = async (email: string, password: string, userData: Partial<User>) => {
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: metadata
-    }
+      data: userData,
+    },
   });
+  
+  if (error) throw error;
+  
+  // Create user profile in the profiles table
+  if (data.user) {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert([
+        {
+          id: data.user.id,
+          name: userData.name,
+          email: email,
+          role: userData.role || 'team_member',
+          avatar_url: userData.avatarUrl,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+    if (profileError) {
+      console.error('Error creating user profile:', profileError);
+    }
+  }
+  
+  return data;
 };
 
 export const signOut = async () => {
-  return await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 };
 
 export const resetPassword = async (email: string) => {
-  return await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
   });
+  
+  if (error) throw error;
 };
 
 export const updatePassword = async (newPassword: string) => {
-  return await supabase.auth.updateUser({
-    password: newPassword
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
   });
-};
-
-export const getSession = async () => {
-  const { data, error } = await supabase.auth.getSession();
-  return data.session;
+  
+  if (error) throw error;
 };
 
 export const getCurrentUser = async (): Promise<User | null> => {
-  const { data, error } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
   
-  if (error || !data.user) {
+  if (!session) {
     return null;
   }
   
-  // Get additional user profile data from profiles table
-  const { data: profileData } = await supabase
+  // Get user profile from profiles table
+  const { data: profile, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', data.user.id)
+    .eq('id', session.user.id)
     .single();
   
-  // Combine auth data with profile data
+  if (error) {
+    console.error('Error fetching user profile:', error);
+    return null;
+  }
+  
+  // Map profile data to User type
   return {
-    id: data.user.id,
-    email: data.user.email || '',
-    name: profileData?.name || data.user.user_metadata?.name || 'User',
-    role: profileData?.role || data.user.user_metadata?.role || 'team_member',
-    company: profileData?.company || data.user.user_metadata?.company || '',
-    position: profileData?.position || data.user.user_metadata?.position || '',
-    avatar_url: profileData?.avatar_url || data.user.user_metadata?.avatar_url || '',
-    phone: profileData?.phone || data.user.user_metadata?.phone || ''
+    id: profile.id,
+    name: profile.name,
+    email: profile.email,
+    role: profile.role,
+    avatarUrl: profile.avatar_url,
+    createdAt: profile.created_at,
+    updatedAt: profile.updated_at,
   };
 };
 
 // Project functions
 export const getProjects = async () => {
-  return await supabase
+  const { data, error } = await supabase
     .from('projects')
     .select('*')
     .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  
+  // Transform data to match our interface
+  return data.map((project: any) => ({
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    status: project.status,
+    startDate: project.start_date,
+    endDate: project.end_date,
+    budget: project.budget,
+    progress: project.progress || 0,
+    createdBy: project.created_by,
+    createdAt: project.created_at,
+    updatedAt: project.updated_at,
+    clientId: project.client_id,
+    clientName: project.client_name,
+  })) as Project[];
 };
 
-export const getProject = async (projectId: string) => {
-  return await supabase
+export const getProject = async (id: string) => {
+  const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .eq('id', projectId)
+    .eq('id', id)
     .single();
+  
+  if (error) throw error;
+  
+  // Transform data to match our interface
+  return {
+    id: data.id,
+    name: data.name,
+    description: data.description,
+    status: data.status,
+    startDate: data.start_date,
+    endDate: data.end_date,
+    budget: data.budget,
+    progress: data.progress || 0,
+    createdBy: data.created_by,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    clientId: data.client_id,
+    clientName: data.client_name,
+  } as Project;
 };
 
-export const createProject = async (projectData: Partial<Project>) => {
-  return await supabase
+export const createProject = async (project: Partial<Project>) => {
+  // Transform data to match database schema
+  const dbProject = {
+    name: project.name,
+    description: project.description,
+    status: project.status,
+    start_date: project.startDate,
+    end_date: project.endDate,
+    budget: project.budget,
+    progress: project.progress || 0,
+    created_by: project.createdBy,
+    client_id: project.clientId,
+    client_name: project.clientName,
+  };
+  
+  const { data, error } = await supabase
     .from('projects')
-    .insert([projectData])
+    .insert(dbProject)
     .select()
     .single();
+  
+  if (error) throw error;
+  
+  return data;
 };
 
-export const updateProject = async (projectId: string, projectData: Partial<Project>) => {
-  return await supabase
+export const updateProject = async (id: string, project: Partial<Project>) => {
+  // Transform data to match database schema
+  const dbProject = {
+    name: project.name,
+    description: project.description,
+    status: project.status,
+    start_date: project.startDate,
+    end_date: project.endDate,
+    budget: project.budget,
+    progress: project.progress,
+    updated_at: new Date().toISOString(),
+    client_id: project.clientId,
+    client_name: project.clientName,
+  };
+  
+  const { data, error } = await supabase
     .from('projects')
-    .update(projectData)
-    .eq('id', projectId)
+    .update(dbProject)
+    .eq('id', id)
     .select()
     .single();
+  
+  if (error) throw error;
+  
+  return data;
 };
 
-export const deleteProject = async (projectId: string) => {
-  return await supabase
+export const deleteProject = async (id: string) => {
+  const { error } = await supabase
     .from('projects')
     .delete()
-    .eq('id', projectId);
+    .eq('id', id);
+  
+  if (error) throw error;
 };
 
 // Task functions
-export const getTasks = async () => {
-  return await supabase
+export const getTasks = async (projectId?: string) => {
+  let query = supabase
     .from('tasks')
     .select('*')
     .order('created_at', { ascending: false });
+  
+  if (projectId) {
+    query = query.eq('project_id', projectId);
+  }
+  
+  const { data, error } = await query;
+  
+  if (error) throw error;
+  
+  // Transform data to match our interface
+  return data.map((task: any) => ({
+    id: task.id,
+    title: task.title,
+    description: task.description,
+    projectId: task.project_id,
+    status: task.status,
+    priority: task.priority,
+    assigneeId: task.assignee_id,
+    dueDate: task.due_date,
+    estimatedHours: task.estimated_hours,
+    actualHours: task.actual_hours,
+    createdAt: task.created_at,
+    updatedAt: task.updated_at,
+    createdBy: task.created_by,
+    completedAt: task.completed_at,
+  })) as Task[];
 };
 
-export const getProjectTasks = async (projectId: string) => {
-  return await supabase
+export const getTask = async (id: string) => {
+  const { data, error } = await supabase
     .from('tasks')
-    .select('*')
-    .eq('project_id', projectId)
-    .order('created_at', { ascending: false });
+    .select(`
+      *,
+      comments:task_comments(*),
+      attachments:task_attachments(*)
+    `)
+    .eq('id', id)
+    .single();
+  
+  if (error) throw error;
+  
+  // Transform data to match our interface
+  const task = {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    projectId: data.project_id,
+    status: data.status,
+    priority: data.priority,
+    assigneeId: data.assignee_id,
+    dueDate: data.due_date,
+    estimatedHours: data.estimated_hours,
+    actualHours: data.actual_hours,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    createdBy: data.created_by,
+    completedAt: data.completed_at,
+    comments: data.comments?.map((comment: any) => ({
+      id: comment.id,
+      text: comment.content,
+      userId: comment.user_id,
+      userName: comment.user_name,
+      createdAt: comment.created_at,
+    })),
+    attachments: data.attachments?.map((attachment: any) => ({
+      id: attachment.id,
+      name: attachment.file_name,
+      url: attachment.file_url,
+      uploadedBy: attachment.uploaded_by,
+      uploadedAt: attachment.created_at,
+    })),
+  } as Task;
+  
+  return task;
 };
 
-export const createTask = async (taskData: Partial<Task>) => {
-  return await supabase
+export const createTask = async (task: Partial<Task>) => {
+  // Transform data to match database schema
+  const dbTask = {
+    title: task.title,
+    description: task.description,
+    project_id: task.projectId,
+    status: task.status,
+    priority: task.priority,
+    assignee_id: task.assigneeId,
+    due_date: task.dueDate,
+    estimated_hours: task.estimatedHours,
+    created_by: task.createdBy,
+  };
+  
+  const { data, error } = await supabase
     .from('tasks')
-    .insert([taskData])
+    .insert(dbTask)
     .select()
     .single();
+  
+  if (error) throw error;
+  
+  return data;
 };
 
-export const updateTask = async (taskData: Partial<Task>) => {
-  return await supabase
+export const updateTask = async (id: string, task: Partial<Task>) => {
+  // Transform data to match database schema
+  const dbTask = {
+    title: task.title,
+    description: task.description,
+    project_id: task.projectId,
+    status: task.status,
+    priority: task.priority,
+    assignee_id: task.assigneeId,
+    due_date: task.dueDate,
+    estimated_hours: task.estimatedHours,
+    actual_hours: task.actualHours,
+    updated_at: new Date().toISOString(),
+    completed_at: task.status === 'Completed' ? new Date().toISOString() : task.completedAt,
+  };
+  
+  const { data, error } = await supabase
     .from('tasks')
-    .update(taskData)
-    .eq('id', taskData.id!)
+    .update(dbTask)
+    .eq('id', id)
     .select()
     .single();
+  
+  if (error) throw error;
+  
+  return data;
 };
 
-export const deleteTask = async (taskId: string) => {
-  return await supabase
+export const deleteTask = async (id: string) => {
+  const { error } = await supabase
     .from('tasks')
     .delete()
-    .eq('id', taskId);
+    .eq('id', id);
+  
+  if (error) throw error;
+};
+
+// Task comments
+export const addTaskComment = async (taskId: string, userId: string, userName: string, text: string) => {
+  const { data, error } = await supabase
+    .from('task_comments')
+    .insert({
+      task_id: taskId,
+      user_id: userId,
+      user_name: userName,
+      content: text,
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  
+  return data;
+};
+
+// Task attachments
+export const addTaskAttachment = async (taskId: string, userId: string, file: File) => {
+  // Upload file to storage
+  const fileName = `${Date.now()}-${file.name}`;
+  const filePath = `task-attachments/${taskId}/${fileName}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('attachments')
+    .upload(filePath, file);
+  
+  if (uploadError) throw uploadError;
+  
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from('attachments')
+    .getPublicUrl(filePath);
+  
+  // Add attachment record
+  const { data, error } = await supabase
+    .from('task_attachments')
+    .insert({
+      task_id: taskId,
+      file_name: file.name,
+      file_type: file.type,
+      file_size: file.size,
+      file_url: urlData.publicUrl,
+      uploaded_by: userId,
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  
+  return data;
+};
+
+// User functions
+export const getUsers = async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*');
+  
+  if (error) throw error;
+  
+  // Transform data to match our interface
+  return data.map((user: any) => ({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    company: user.company,
+    jobTitle: user.job_title,
+    department: user.department,
+    phone: user.phone,
+    avatarUrl: user.avatar_url,
+    createdAt: user.created_at,
+    lastSignInAt: user.last_sign_in_at,
+  })) as User[];
+};
+
+export const updateUserProfile = async (userId: string, updates: Partial<User>) => {
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      name: updates.name,
+      avatar_url: updates.avatarUrl,
+      updated_at: new Date().toISOString(),
+      ...updates,
+    })
+    .eq('id', userId);
+
+  if (error) {
+    throw error;
+  }
+
+  return getCurrentUser();
+};
+
+export const uploadAvatar = async (userId: string, file: File) => {
+  // Upload file to storage
+  const fileName = `${userId}-${Date.now()}`;
+  const filePath = `avatars/${fileName}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file);
+  
+  if (uploadError) throw uploadError;
+  
+  // Get public URL
+  const { data: urlData } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(filePath);
+  
+  // Update user profile
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      avatar_url: urlData.publicUrl,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', userId)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  
+  return data;
 };
 
 // Document functions

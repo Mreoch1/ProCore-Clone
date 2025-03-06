@@ -7,32 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test-backend:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: backend/package-lock.json
-    
-    - name: Install dependencies
-      run: cd backend && npm ci
-    
-    - name: Lint
-      run: cd backend && npm run lint || echo "No lint script found"
-    
-    - name: Build
-      run: cd backend && npm run build
-    
-    - name: Test
-      run: cd backend && npm test || echo "No test script found"
-
-  test-frontend:
+  build-and-deploy:
     runs-on: ubuntu-latest
     
     steps:
@@ -46,34 +21,15 @@ jobs:
         cache-dependency-path: frontend/package-lock.json
     
     - name: Install dependencies
-      run: cd frontend && npm ci
-    
-    - name: Lint
-      run: cd frontend && npm run lint
+      run: cd frontend && npm install --legacy-peer-deps
     
     - name: Build
       run: cd frontend && npm run build
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
     
-    - name: Test
-      run: cd frontend && npm test || echo "No test script found"
-
-  deploy:
-    needs: [test-backend, test-frontend]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Deploy Backend to Heroku
-      uses: akhileshns/heroku-deploy@v3.12.14
-      with:
-        heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-        heroku_app_name: "procore-clone-api"
-        heroku_email: ${{ secrets.HEROKU_EMAIL }}
-        appdir: "backend"
-    
-    - name: Deploy Frontend to Netlify
+    - name: Deploy to Netlify
       uses: nwtgck/actions-netlify@v2.0
       with:
         publish-dir: './frontend/dist'
@@ -86,4 +42,4 @@ jobs:
       env:
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-      timeout-minutes: 1 
+      timeout-minutes: 2

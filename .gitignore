@@ -31,3 +31,5 @@ yarn-error.log*
 
 # Supabase
 .supabase/
+# Local Netlify folder
+.netlify

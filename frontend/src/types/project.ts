@@ -34,6 +34,7 @@ export interface Project {
   teamMembers?: ProjectMember[];
   documents?: ProjectDocument[];
   tags?: string[];
+  location?: string;
 }
 
 export interface ProjectStatistics {

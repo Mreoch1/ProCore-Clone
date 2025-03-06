@@ -3,20 +3,19 @@ export interface Task {
   title: string;
   description?: string;
   projectId: string;
-  status: string;
-  priority: string;
+  status: 'todo' | 'in_progress' | 'review' | 'completed' | 'blocked';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
   assigneeId?: string;
   dueDate?: string;
   estimatedHours?: number;
   actualHours?: number;
   createdAt: string;
-  updatedAt?: string;
-  createdBy?: string;
+  updatedAt: string;
+  createdBy: string;
   completedAt?: string;
+  progress: number;
   comments?: TaskComment[];
   attachments?: TaskAttachment[];
-  dependencies?: string[];
-  progress?: number;
 }
 
 export interface TaskComment {
@@ -35,11 +34,20 @@ export interface TaskAttachment {
   uploadedAt: string;
 }
 
+export interface TaskFilter {
+  status?: string[];
+  priority?: string[];
+  assigneeId?: string[];
+  dueDate?: string;
+  projectId?: string;
+  searchTerm?: string;
+}
+
 export interface TaskStatistics {
   total: number;
   completed: number;
   inProgress: number;
-  review: number;
   todo: number;
+  blocked: number;
   overdue: number;
 } 

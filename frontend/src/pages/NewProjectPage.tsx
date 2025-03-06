@@ -1,67 +1,108 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
 import { createProject } from '../utils/supabaseClient';
+import { Project } from '../types/Project';
+import LoadingSpinner from '../components/LoadingSpinner';
 import '../styles/NewProjectPage.css';
 
-interface NewProjectPageProps {}
-
-const NewProjectPage: React.FC<NewProjectPageProps> = () => {
+const NewProjectPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useUser();
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<Project>>({
     name: '',
     description: '',
-    client: '',
+    status: 'not_started',
+    startDate: '',
+    endDate: '',
+    budget: undefined,
+    progress: 0,
+    clientName: '',
     location: '',
-    start_date: '',
-    end_date: '',
-    budget: '',
-    status: 'planning'
   });
   
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Handle budget as a number
+    if (name === 'budget') {
+      setFormData({
+        ...formData,
+        [name]: value ? parseFloat(value) : undefined,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
+    
+    // Clear error for this field if it exists
+    if (formErrors[name]) {
+      setFormErrors({
+        ...formErrors,
+        [name]: '',
+      });
+    }
+  };
+  
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    
+    if (!formData.name?.trim()) {
+      errors.name = 'Project name is required';
+    }
+    
+    if (formData.startDate && formData.endDate) {
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
+      
+      if (endDate < startDate) {
+        errors.endDate = 'End date cannot be before start date';
+      }
+    }
+    
+    if (formData.budget !== undefined && formData.budget < 0) {
+      errors.budget = 'Budget cannot be negative';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!validateForm()) {
+      return;
+    }
+    
     try {
       setLoading(true);
       setError(null);
       
-      // Validate form data
-      if (!formData.name.trim()) {
-        throw new Error('Project name is required');
-      }
-      
-      // Format budget as number if provided
-      const budget = formData.budget ? parseFloat(formData.budget) : null;
-      
-      // Create project
-      const { data, error: createError } = await createProject({
+      // Add creator information
+      const projectData = {
         ...formData,
-        budget
-      });
+        createdBy: user?.id,
+      };
       
-      if (createError) {
-        throw new Error(createError.message);
-      }
+      const newProject = await createProject(projectData);
       
-      if (data) {
-        // Navigate to the new project page
-        navigate(`/projects/${data.id}`);
+      if (newProject) {
+        navigate(`/projects/${newProject.id}`, { state: { message: 'Project created successfully' } });
+      } else {
+        setError('Failed to create project');
+        setLoading(false);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
+      console.error('Error creating project:', err);
+      setError('An error occurred while creating the project');
       setLoading(false);
     }
   };
@@ -69,146 +110,155 @@ const NewProjectPage: React.FC<NewProjectPageProps> = () => {
   const handleCancel = () => {
     navigate('/projects');
   };
-
+  
+  if (loading) {
+    return <LoadingSpinner fullScreen message="Creating project..." />;
+  }
+  
   return (
     <div className="new-project-page">
       <div className="page-header">
         <h1>Create New Project</h1>
-        <button className="cancel-button" onClick={handleCancel}>
-          <i className="fas fa-times"></i>
-          Cancel
-        </button>
       </div>
       
-      <div className="form-container">
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div className="error-message">
-              <i className="fas fa-exclamation-circle"></i>
-              {error}
-            </div>
-          )}
+      {error && (
+        <div className="alert alert-error">
+          {error}
+          <button className="close-btn" onClick={() => setError(null)}>×</button>
+        </div>
+      )}
+      
+      <form className="project-form" onSubmit={handleSubmit}>
+        <div className="form-section">
+          <h2>Basic Information</h2>
           
-          <div className="form-grid">
+          <div className="form-group">
+            <label htmlFor="name">Project Name *</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              className={formErrors.name ? 'error' : ''}
+              placeholder="Enter project name"
+              required
+            />
+            {formErrors.name && <div className="error-message">{formErrors.name}</div>}
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Enter project description"
+              rows={4}
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="status">Status</label>
+            <select
+              id="status"
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+            >
+              <option value="not_started">Not Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="on_hold">On Hold</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="form-section">
+          <h2>Timeline & Budget</h2>
+          
+          <div className="form-row">
             <div className="form-group">
-              <label htmlFor="name">Project Name *</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter project name"
-                required
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="status">Status</label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <option value="planning">Planning</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="on_hold">On Hold</option>
-              </select>
-            </div>
-            
-            <div className="form-group full-width">
-              <label htmlFor="description">Description</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Enter project description"
-                rows={4}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="client">Client</label>
-              <input
-                type="text"
-                id="client"
-                name="client"
-                value={formData.client}
-                onChange={handleChange}
-                placeholder="Enter client name"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="location">Location</label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                placeholder="Enter project location"
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="start_date">Start Date</label>
+              <label htmlFor="startDate">Start Date</label>
               <input
                 type="date"
-                id="start_date"
-                name="start_date"
-                value={formData.start_date}
+                id="startDate"
+                name="startDate"
+                value={formData.startDate}
                 onChange={handleChange}
               />
             </div>
             
             <div className="form-group">
-              <label htmlFor="end_date">End Date</label>
+              <label htmlFor="endDate">End Date</label>
               <input
                 type="date"
-                id="end_date"
-                name="end_date"
-                value={formData.end_date}
+                id="endDate"
+                name="endDate"
+                value={formData.endDate}
                 onChange={handleChange}
+                className={formErrors.endDate ? 'error' : ''}
               />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="budget">Budget ($)</label>
-              <input
-                type="number"
-                id="budget"
-                name="budget"
-                value={formData.budget}
-                onChange={handleChange}
-                placeholder="Enter project budget"
-                min="0"
-                step="0.01"
-              />
+              {formErrors.endDate && <div className="error-message">{formErrors.endDate}</div>}
             </div>
           </div>
           
-          <div className="form-actions">
-            <button 
-              type="button" 
-              className="secondary-button"
-              onClick={handleCancel}
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              className="primary-button"
-              disabled={loading}
-            >
-              {loading ? 'Creating...' : 'Create Project'}
-            </button>
+          <div className="form-group">
+            <label htmlFor="budget">Budget ($)</label>
+            <input
+              type="number"
+              id="budget"
+              name="budget"
+              value={formData.budget === undefined ? '' : formData.budget}
+              onChange={handleChange}
+              placeholder="Enter project budget"
+              min="0"
+              step="0.01"
+              className={formErrors.budget ? 'error' : ''}
+            />
+            {formErrors.budget && <div className="error-message">{formErrors.budget}</div>}
           </div>
-        </form>
-      </div>
+        </div>
+        
+        <div className="form-section">
+          <h2>Client Information</h2>
+          
+          <div className="form-group">
+            <label htmlFor="clientName">Client Name</label>
+            <input
+              type="text"
+              id="clientName"
+              name="clientName"
+              value={formData.clientName}
+              onChange={handleChange}
+              placeholder="Enter client name"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="location">Location</label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="Enter project location"
+            />
+          </div>
+        </div>
+        
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-primary">
+            Create Project
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

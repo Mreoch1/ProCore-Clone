@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { User } from '../types/User';
-import { Project } from '../types/Project';
-import { Task } from '../types/Task';
+import { Project, ProjectMember, ProjectDocument } from '../types/Project';
+import { Task, TaskComment, TaskAttachment } from '../types/Task';
 import { Document } from '../types/Document';
 
 // Initialize Supabase client
@@ -113,16 +113,19 @@ export const getCurrentUser = async (): Promise<User | null> => {
 };
 
 // Project functions
-export const getProjects = async () => {
+export const getProjects = async (): Promise<Project[]> => {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
     .order('created_at', { ascending: false });
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching projects:', error);
+    return [];
+  }
   
-  // Transform data to match our interface
-  return data.map((project: any) => ({
+  // Map database fields to Project type
+  return data.map(project => ({
     id: project.id,
     name: project.name,
     description: project.description,
@@ -130,25 +133,29 @@ export const getProjects = async () => {
     startDate: project.start_date,
     endDate: project.end_date,
     budget: project.budget,
-    progress: project.progress || 0,
+    progress: project.progress,
     createdBy: project.created_by,
     createdAt: project.created_at,
     updatedAt: project.updated_at,
     clientId: project.client_id,
     clientName: project.client_name,
-  })) as Project[];
+    location: project.location,
+  }));
 };
 
-export const getProject = async (id: string) => {
+export const getProject = async (id: string): Promise<Project | null> => {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
     .eq('id', id)
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error(`Error fetching project ${id}:`, error);
+    return null;
+  }
   
-  // Transform data to match our interface
+  // Map database fields to Project type
   return {
     id: data.id,
     name: data.name,
@@ -157,21 +164,22 @@ export const getProject = async (id: string) => {
     startDate: data.start_date,
     endDate: data.end_date,
     budget: data.budget,
-    progress: data.progress || 0,
+    progress: data.progress,
     createdBy: data.created_by,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
     clientId: data.client_id,
     clientName: data.client_name,
-  } as Project;
+    location: data.location,
+  };
 };
 
-export const createProject = async (project: Partial<Project>) => {
-  // Transform data to match database schema
+export const createProject = async (project: Partial<Project>): Promise<Project | null> => {
+  // Map Project type to database fields
   const dbProject = {
     name: project.name,
     description: project.description,
-    status: project.status,
+    status: project.status || 'not_started',
     start_date: project.startDate,
     end_date: project.endDate,
     budget: project.budget,
@@ -179,21 +187,43 @@ export const createProject = async (project: Partial<Project>) => {
     created_by: project.createdBy,
     client_id: project.clientId,
     client_name: project.clientName,
+    location: project.location,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
   
   const { data, error } = await supabase
     .from('projects')
-    .insert(dbProject)
+    .insert([dbProject])
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error creating project:', error);
+    return null;
+  }
   
-  return data;
+  // Map database response back to Project type
+  return {
+    id: data.id,
+    name: data.name,
+    description: data.description,
+    status: data.status,
+    startDate: data.start_date,
+    endDate: data.end_date,
+    budget: data.budget,
+    progress: data.progress,
+    createdBy: data.created_by,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    clientId: data.client_id,
+    clientName: data.client_name,
+    location: data.location,
+  };
 };
 
-export const updateProject = async (id: string, project: Partial<Project>) => {
-  // Transform data to match database schema
+export const updateProject = async (id: string, project: Partial<Project>): Promise<Project | null> => {
+  // Map Project type to database fields
   const dbProject = {
     name: project.name,
     description: project.description,
@@ -202,9 +232,10 @@ export const updateProject = async (id: string, project: Partial<Project>) => {
     end_date: project.endDate,
     budget: project.budget,
     progress: project.progress,
-    updated_at: new Date().toISOString(),
     client_id: project.clientId,
     client_name: project.clientName,
+    location: project.location,
+    updated_at: new Date().toISOString(),
   };
   
   const { data, error } = await supabase
@@ -214,22 +245,46 @@ export const updateProject = async (id: string, project: Partial<Project>) => {
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error(`Error updating project ${id}:`, error);
+    return null;
+  }
   
-  return data;
+  // Map database response back to Project type
+  return {
+    id: data.id,
+    name: data.name,
+    description: data.description,
+    status: data.status,
+    startDate: data.start_date,
+    endDate: data.end_date,
+    budget: data.budget,
+    progress: data.progress,
+    createdBy: data.created_by,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    clientId: data.client_id,
+    clientName: data.client_name,
+    location: data.location,
+  };
 };
 
-export const deleteProject = async (id: string) => {
+export const deleteProject = async (id: string): Promise<boolean> => {
   const { error } = await supabase
     .from('projects')
     .delete()
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error(`Error deleting project ${id}:`, error);
+    return false;
+  }
+  
+  return true;
 };
 
 // Task functions
-export const getTasks = async (projectId?: string) => {
+export const getTasks = async (projectId?: string): Promise<Task[]> => {
   let query = supabase
     .from('tasks')
     .select('*')
@@ -241,10 +296,13 @@ export const getTasks = async (projectId?: string) => {
   
   const { data, error } = await query;
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching tasks:', error);
+    return [];
+  }
   
-  // Transform data to match our interface
-  return data.map((task: any) => ({
+  // Map database fields to Task type
+  return data.map(task => ({
     id: task.id,
     title: task.title,
     description: task.description,
@@ -259,24 +317,50 @@ export const getTasks = async (projectId?: string) => {
     updatedAt: task.updated_at,
     createdBy: task.created_by,
     completedAt: task.completed_at,
-  })) as Task[];
+    progress: task.progress,
+  }));
 };
 
-export const getTask = async (id: string) => {
+export const getProjectTasks = async (projectId: string): Promise<Task[]> => {
+  return getTasks(projectId);
+};
+
+export const getTask = async (id: string): Promise<Task | null> => {
   const { data, error } = await supabase
     .from('tasks')
-    .select(`
-      *,
-      comments:task_comments(*),
-      attachments:task_attachments(*)
-    `)
+    .select('*')
     .eq('id', id)
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error(`Error fetching task ${id}:`, error);
+    return null;
+  }
   
-  // Transform data to match our interface
-  const task = {
+  // Get task comments
+  const { data: commentsData, error: commentsError } = await supabase
+    .from('task_comments')
+    .select('*')
+    .eq('task_id', id)
+    .order('created_at', { ascending: true });
+
+  if (commentsError) {
+    console.error(`Error fetching comments for task ${id}:`, commentsError);
+  }
+
+  // Get task attachments
+  const { data: attachmentsData, error: attachmentsError } = await supabase
+    .from('task_attachments')
+    .select('*')
+    .eq('task_id', id)
+    .order('created_at', { ascending: true });
+
+  if (attachmentsError) {
+    console.error(`Error fetching attachments for task ${id}:`, attachmentsError);
+  }
+  
+  // Map database fields to Task type
+  return {
     id: data.id,
     title: data.title,
     description: data.description,
@@ -291,52 +375,75 @@ export const getTask = async (id: string) => {
     updatedAt: data.updated_at,
     createdBy: data.created_by,
     completedAt: data.completed_at,
-    comments: data.comments?.map((comment: any) => ({
+    progress: data.progress,
+    comments: commentsData?.map(comment => ({
       id: comment.id,
-      text: comment.content,
+      text: comment.text,
       userId: comment.user_id,
       userName: comment.user_name,
       createdAt: comment.created_at,
-    })),
-    attachments: data.attachments?.map((attachment: any) => ({
+    })) || [],
+    attachments: attachmentsData?.map(attachment => ({
       id: attachment.id,
-      name: attachment.file_name,
-      url: attachment.file_url,
+      name: attachment.name,
+      url: attachment.url,
       uploadedBy: attachment.uploaded_by,
       uploadedAt: attachment.created_at,
-    })),
-  } as Task;
-  
-  return task;
+    })) || [],
+  };
 };
 
-export const createTask = async (task: Partial<Task>) => {
-  // Transform data to match database schema
+export const createTask = async (task: Partial<Task>): Promise<Task | null> => {
+  // Map Task type to database fields
   const dbTask = {
     title: task.title,
     description: task.description,
     project_id: task.projectId,
-    status: task.status,
-    priority: task.priority,
+    status: task.status || 'todo',
+    priority: task.priority || 'medium',
     assignee_id: task.assigneeId,
     due_date: task.dueDate,
     estimated_hours: task.estimatedHours,
+    actual_hours: task.actualHours,
     created_by: task.createdBy,
+    progress: task.progress || 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
   
   const { data, error } = await supabase
     .from('tasks')
-    .insert(dbTask)
+    .insert([dbTask])
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error creating task:', error);
+    return null;
+  }
   
-  return data;
+  // Map database response back to Task type
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    projectId: data.project_id,
+    status: data.status,
+    priority: data.priority,
+    assigneeId: data.assignee_id,
+    dueDate: data.due_date,
+    estimatedHours: data.estimated_hours,
+    actualHours: data.actual_hours,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    createdBy: data.created_by,
+    completedAt: data.completed_at,
+    progress: data.progress,
+  };
 };
 
-export const updateTask = async (id: string, task: Partial<Task>) => {
-  // Transform data to match database schema
+export const updateTask = async (id: string, task: Partial<Task>): Promise<Task | null> => {
+  // Map Task type to database fields
   const dbTask = {
     title: task.title,
     description: task.description,
@@ -347,9 +454,14 @@ export const updateTask = async (id: string, task: Partial<Task>) => {
     due_date: task.dueDate,
     estimated_hours: task.estimatedHours,
     actual_hours: task.actualHours,
+    progress: task.progress,
     updated_at: new Date().toISOString(),
-    completed_at: task.status === 'Completed' ? new Date().toISOString() : task.completedAt,
   };
+  
+  // If status is completed and there's no completedAt date, set it
+  if (task.status === 'completed' && !task.completedAt) {
+    dbTask.completed_at = new Date().toISOString();
+  }
   
   const { data, error } = await supabase
     .from('tasks')
@@ -358,98 +470,144 @@ export const updateTask = async (id: string, task: Partial<Task>) => {
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error(`Error updating task ${id}:`, error);
+    return null;
+  }
   
-  return data;
+  // Map database response back to Task type
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    projectId: data.project_id,
+    status: data.status,
+    priority: data.priority,
+    assigneeId: data.assignee_id,
+    dueDate: data.due_date,
+    estimatedHours: data.estimated_hours,
+    actualHours: data.actual_hours,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    createdBy: data.created_by,
+    completedAt: data.completed_at,
+    progress: data.progress,
+  };
 };
 
-export const deleteTask = async (id: string) => {
+export const deleteTask = async (id: string): Promise<boolean> => {
   const { error } = await supabase
     .from('tasks')
     .delete()
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error(`Error deleting task ${id}:`, error);
+    return false;
+  }
+  
+  return true;
 };
 
-// Task comments
-export const addTaskComment = async (taskId: string, userId: string, userName: string, text: string) => {
+export const addTaskComment = async (taskId: string, userId: string, userName: string, text: string): Promise<TaskComment | null> => {
   const { data, error } = await supabase
     .from('task_comments')
-    .insert({
-      task_id: taskId,
-      user_id: userId,
-      user_name: userName,
-      content: text,
-      created_at: new Date().toISOString(),
-    })
+    .insert([
+      {
+        task_id: taskId,
+        user_id: userId,
+        user_name: userName,
+        text: text,
+        created_at: new Date().toISOString(),
+      },
+    ])
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error(`Error adding comment to task ${taskId}:`, error);
+    return null;
+  }
   
-  return data;
+  return {
+    id: data.id,
+    text: data.text,
+    userId: data.user_id,
+    userName: data.user_name,
+    createdAt: data.created_at,
+  };
 };
 
-// Task attachments
-export const addTaskAttachment = async (taskId: string, userId: string, file: File) => {
-  // Upload file to storage
-  const fileName = `${Date.now()}-${file.name}`;
+export const addTaskAttachment = async (taskId: string, userId: string, file: File): Promise<TaskAttachment | null> => {
+  // Upload file to Supabase Storage
+  const fileName = `${Date.now()}_${file.name}`;
   const filePath = `task-attachments/${taskId}/${fileName}`;
   
-  const { error: uploadError } = await supabase.storage
+  const { data: fileData, error: uploadError } = await supabase.storage
     .from('attachments')
     .upload(filePath, file);
   
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    console.error(`Error uploading attachment for task ${taskId}:`, uploadError);
+    return null;
+  }
   
-  // Get public URL
-  const { data: urlData } = supabase.storage
+  // Get public URL for the uploaded file
+  const { data: { publicUrl } } = supabase.storage
     .from('attachments')
     .getPublicUrl(filePath);
   
-  // Add attachment record
+  // Add attachment record to database
   const { data, error } = await supabase
     .from('task_attachments')
-    .insert({
-      task_id: taskId,
-      file_name: file.name,
-      file_type: file.type,
-      file_size: file.size,
-      file_url: urlData.publicUrl,
-      uploaded_by: userId,
-      created_at: new Date().toISOString(),
-    })
+    .insert([
+      {
+        task_id: taskId,
+        name: file.name,
+        url: publicUrl,
+        uploaded_by: userId,
+        created_at: new Date().toISOString(),
+      },
+    ])
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error(`Error adding attachment record for task ${taskId}:`, error);
+    return null;
+  }
   
-  return data;
+  return {
+    id: data.id,
+    name: data.name,
+    url: data.url,
+    uploadedBy: data.uploaded_by,
+    uploadedAt: data.created_at,
+  };
 };
 
 // User functions
-export const getUsers = async () => {
+export const getUsers = async (): Promise<User[]> => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('*');
+    .select('*')
+    .order('name');
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
   
-  // Transform data to match our interface
-  return data.map((user: any) => ({
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    company: user.company,
-    jobTitle: user.job_title,
-    department: user.department,
-    phone: user.phone,
-    avatarUrl: user.avatar_url,
-    createdAt: user.created_at,
-    lastSignInAt: user.last_sign_in_at,
-  })) as User[];
+  // Map database fields to User type
+  return data.map(profile => ({
+    id: profile.id,
+    name: profile.name,
+    email: profile.email,
+    role: profile.role,
+    avatarUrl: profile.avatar_url,
+    createdAt: profile.created_at,
+    updatedAt: profile.updated_at,
+  }));
 };
 
 export const updateUserProfile = async (userId: string, updates: Partial<User>) => {
@@ -470,187 +628,217 @@ export const updateUserProfile = async (userId: string, updates: Partial<User>) 
   return getCurrentUser();
 };
 
-export const uploadAvatar = async (userId: string, file: File) => {
-  // Upload file to storage
-  const fileName = `${userId}-${Date.now()}`;
+export const uploadAvatar = async (userId: string, file: File): Promise<string | null> => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${userId}_${Date.now()}.${fileExt}`;
   const filePath = `avatars/${fileName}`;
   
   const { error: uploadError } = await supabase.storage
     .from('avatars')
     .upload(filePath, file);
   
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    console.error('Error uploading avatar:', uploadError);
+    return null;
+  }
   
-  // Get public URL
-  const { data: urlData } = supabase.storage
+  // Get public URL for the uploaded file
+  const { data: { publicUrl } } = supabase.storage
     .from('avatars')
     .getPublicUrl(filePath);
   
-  // Update user profile
-  const { data, error } = await supabase
+  // Update user profile with new avatar URL
+  const { error: updateError } = await supabase
     .from('profiles')
-    .update({
-      avatar_url: urlData.publicUrl,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', userId)
-    .select()
-    .single();
+    .update({ avatar_url: publicUrl })
+    .eq('id', userId);
   
-  if (error) throw error;
+  if (updateError) {
+    console.error('Error updating user profile with avatar URL:', updateError);
+    return null;
+  }
+  
+  return publicUrl;
+};
+
+// Document functions
+export const getDocuments = async (): Promise<Document[]> => {
+  const { data, error } = await supabase
+    .from('project_documents')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching documents:', error);
+    return [];
+  }
   
   return data;
 };
 
-// Document functions
-export const getDocuments = async () => {
-  return await supabase
-    .from('documents')
+export const getProjectDocuments = async (projectId: string): Promise<Document[]> => {
+  const { data, error } = await supabase
+    .from('project_documents')
     .select('*')
-    .order('created_at', { ascending: false });
-};
-
-export const getProjectDocuments = async (projectId: string) => {
-  return await supabase
-    .from('documents')
-    .select('*')
-    .eq('project_id', projectId)
-    .order('created_at', { ascending: false });
-};
-
-export const uploadDocument = async (projectId: string, file: File, metadata: any) => {
-  // First upload the file to storage
-  const fileName = `${Date.now()}_${file.name}`;
-  const filePath = `documents/${projectId}/${fileName}`;
+    .eq('project_id', projectId);
   
-  const { data: fileData, error: fileError } = await supabase.storage
-    .from('project-files')
-    .upload(filePath, file);
-  
-  if (fileError) {
-    return { data: null, error: fileError };
+  if (error) {
+    console.error(`Error fetching documents for project ${projectId}:`, error);
+    return [];
   }
   
-  // Get the public URL for the file
-  const { data: urlData } = supabase.storage
-    .from('project-files')
-    .getPublicUrl(filePath);
-  
-  // Create a document record in the database
-  const documentData = {
-    project_id: projectId,
-    name: file.name,
-    description: metadata.description || '',
-    file_type: file.type,
-    file_size: file.size,
-    file_path: filePath,
-    file_url: urlData.publicUrl,
-    created_by: metadata.userId,
-    category: metadata.category || 'general'
-  };
-  
-  return await supabase
-    .from('documents')
-    .insert([documentData])
-    .select()
-    .single();
+  return data;
 };
 
-export const deleteDocument = async (documentId: string, filePath: string) => {
-  // Delete the file from storage
+export const uploadDocument = async (projectId: string, file: File, metadata: any): Promise<Document | null> => {
+  // Upload file to Supabase Storage
+  const fileName = `${Date.now()}_${file.name}`;
+  const filePath = `project-documents/${projectId}/${fileName}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('documents')
+    .upload(filePath, file);
+  
+  if (uploadError) {
+    console.error(`Error uploading document for project ${projectId}:`, uploadError);
+    return null;
+  }
+  
+  // Get public URL for the uploaded file
+  const { data: { publicUrl } } = supabase.storage
+    .from('documents')
+    .getPublicUrl(filePath);
+  
+  // Add document record to database
+  const { data, error } = await supabase
+    .from('project_documents')
+    .insert([
+      {
+        project_id: projectId,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        url: publicUrl,
+        uploaded_by: metadata.userId,
+        created_at: new Date().toISOString(),
+      },
+    ])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error(`Error adding document record for project ${projectId}:`, error);
+    return null;
+  }
+  
+  return data;
+};
+
+export const deleteDocument = async (documentId: string, filePath: string): Promise<boolean> => {
+  // Delete file from storage
   const { error: storageError } = await supabase.storage
-    .from('project-files')
+    .from('documents')
     .remove([filePath]);
   
   if (storageError) {
-    return { data: null, error: storageError };
+    console.error(`Error deleting document file ${filePath}:`, storageError);
+    return false;
   }
   
-  // Delete the document record
-  return await supabase
-    .from('documents')
+  // Delete document record from database
+  const { error: dbError } = await supabase
+    .from('project_documents')
     .delete()
     .eq('id', documentId);
+  
+  if (dbError) {
+    console.error(`Error deleting document record ${documentId}:`, dbError);
+    return false;
+  }
+  
+  return true;
 };
 
 // Team functions
-export const getTeamMembers = async () => {
-  return await supabase
-    .from('profiles')
+export const getTeamMembers = async (): Promise<User[]> => {
+  return getUsers();
+};
+
+export const getProjectTeam = async (projectId: string): Promise<ProjectMember[]> => {
+  const { data, error } = await supabase
+    .from('project_members')
     .select('*')
-    .order('name');
-};
-
-export const getProjectTeam = async (projectId: string) => {
-  return await supabase
-    .from('project_members')
-    .select(`
-      profiles:user_id (*)
-    `)
     .eq('project_id', projectId);
+  
+  if (error) {
+    console.error(`Error fetching team for project ${projectId}:`, error);
+    return [];
+  }
+  
+  return data;
 };
 
-export const addProjectMember = async (projectId: string, userId: string, role: string) => {
-  return await supabase
+export const addProjectMember = async (projectId: string, userId: string, role: string): Promise<ProjectMember | null> => {
+  const { data, error } = await supabase
     .from('project_members')
-    .insert([{
-      project_id: projectId,
-      user_id: userId,
-      role: role
-    }])
+    .insert([
+      {
+        project_id: projectId,
+        user_id: userId,
+        role: role,
+        joined_at: new Date().toISOString(),
+      },
+    ])
     .select()
     .single();
+  
+  if (error) {
+    console.error(`Error adding member to project ${projectId}:`, error);
+    return null;
+  }
+  
+  return data;
 };
 
-export const removeProjectMember = async (projectId: string, userId: string) => {
-  return await supabase
+export const removeProjectMember = async (projectId: string, userId: string): Promise<boolean> => {
+  const { error } = await supabase
     .from('project_members')
     .delete()
     .eq('project_id', projectId)
     .eq('user_id', userId);
+  
+  if (error) {
+    console.error(`Error removing member from project ${projectId}:`, error);
+    return false;
+  }
+  
+  return true;
 };
 
 // Real-time subscriptions
 export const subscribeToProjects = (callback: (payload: any) => void) => {
   return supabase
     .channel('projects-changes')
-    .on('postgres_changes', { 
-      event: '*', 
-      schema: 'public', 
-      table: 'projects' 
-    }, callback)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, callback)
     .subscribe();
 };
 
 export const subscribeToTasks = (callback: (payload: any) => void) => {
   return supabase
     .channel('tasks-changes')
-    .on('postgres_changes', { 
-      event: '*', 
-      schema: 'public', 
-      table: 'tasks' 
-    }, callback)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, callback)
     .subscribe();
 };
 
 export const subscribeToDocuments = (callback: (payload: any) => void) => {
   return supabase
     .channel('documents-changes')
-    .on('postgres_changes', { 
-      event: '*', 
-      schema: 'public', 
-      table: 'documents' 
-    }, callback)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'project_documents' }, callback)
     .subscribe();
 };
 
 export const subscribeToProjectMembers = (callback: (payload: any) => void) => {
   return supabase
     .channel('project-members-changes')
-    .on('postgres_changes', { 
-      event: '*', 
-      schema: 'public', 
-      table: 'project_members' 
-    }, callback)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'project_members' }, callback)
     .subscribe();
 }; 

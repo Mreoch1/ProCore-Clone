@@ -25,7 +25,7 @@ const RegisterPage: React.FC = () => {
     }
 
     try {
-      const { error } = await signUp(email, password, fullName);
+      const { error } = await signUp(email, password, { name: fullName, role: 'team_member' });
       
       if (error) {
         setError(error.message);

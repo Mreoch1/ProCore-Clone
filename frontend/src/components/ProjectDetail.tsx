@@ -21,13 +21,13 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'tasks' | 'documents' | 'team'>('overview');
   const [newTask, setNewTask] = useState<Partial<Task>>({
-    project_id: project.id,
+    projectId: project.id,
     title: '',
     description: '',
     status: 'todo',
     priority: 'medium',
-    assignee_id: '',
-    due_date: ''
+    assigneeId: '',
+    dueDate: ''
   });
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
 
@@ -37,13 +37,13 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
     
     // Reset form and close modal
     setNewTask({
-      project_id: project.id,
+      projectId: project.id,
       title: '',
       description: '',
       status: 'todo',
       priority: 'medium',
-      assignee_id: '',
-      due_date: ''
+      assigneeId: '',
+      dueDate: ''
     });
     setShowNewTaskModal(false);
   };
@@ -103,7 +103,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
   };
 
   const getTeamMembers = () => {
-    return team.filter(member => project.team_members.includes(member.id));
+    return team.filter(member => project.teamMembers?.includes(member.id));
   };
 
   return (
@@ -112,10 +112,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
         <div className="project-info">
           <h2>{project.name}</h2>
           <div className="project-meta">
-            <span className="project-client">{project.client}</span>
+            <span className="project-client">{project.clientName}</span>
             <span className="project-location">{project.location}</span>
             <span className="project-dates">
-              {formatDate(project.start_date)} - {formatDate(project.end_date)}
+              {formatDate(project.startDate || '')} - {formatDate(project.endDate || '')}
             </span>
             <span className="project-status" data-status={project.status}>
               {project.status.replace('_', ' ')}
@@ -203,7 +203,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
               <div className="budget-info">
                 <div className="budget-amount">
                   <span className="budget-label">Total Budget</span>
-                  <span className="budget-value">${project.budget.toLocaleString()}</span>
+                  <span className="budget-value">${project.budget?.toLocaleString() || '0'}</span>
                 </div>
                 {/* In a real app, you would calculate spent amount and remaining budget */}
                 <div className="budget-amount">
@@ -212,7 +212,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
                 </div>
                 <div className="budget-amount">
                   <span className="budget-label">Remaining</span>
-                  <span className="budget-value">${project.budget.toLocaleString()}</span>
+                  <span className="budget-value">${project.budget?.toLocaleString() || '0'}</span>
                 </div>
               </div>
             </div>
@@ -247,9 +247,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
                       <p className="task-description">{task.description}</p>
                       <div className="task-card-footer">
                         <span className="task-assignee">
-                          {team.find(u => u.id === task.assignee_id)?.name || 'Unassigned'}
+                          {team.find(u => u.id === task.assigneeId)?.name || 'Unassigned'}
                         </span>
-                        <span className="task-due-date">{formatDate(task.due_date)}</span>
+                        <span className="task-due-date">{formatDate(task.dueDate)}</span>
                       </div>
                       <div className="task-actions">
                         <button onClick={() => handleTaskStatusChange(task.id, 'in_progress')}>
@@ -276,9 +276,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
                       <p className="task-description">{task.description}</p>
                       <div className="task-card-footer">
                         <span className="task-assignee">
-                          {team.find(u => u.id === task.assignee_id)?.name || 'Unassigned'}
+                          {team.find(u => u.id === task.assigneeId)?.name || 'Unassigned'}
                         </span>
-                        <span className="task-due-date">{formatDate(task.due_date)}</span>
+                        <span className="task-due-date">{formatDate(task.dueDate)}</span>
                       </div>
                       <div className="task-actions">
                         <button onClick={() => handleTaskStatusChange(task.id, 'todo')}>
@@ -308,9 +308,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
                       <p className="task-description">{task.description}</p>
                       <div className="task-card-footer">
                         <span className="task-assignee">
-                          {team.find(u => u.id === task.assignee_id)?.name || 'Unassigned'}
+                          {team.find(u => u.id === task.assigneeId)?.name || 'Unassigned'}
                         </span>
-                        <span className="task-due-date">{formatDate(task.due_date)}</span>
+                        <span className="task-due-date">{formatDate(task.dueDate)}</span>
                       </div>
                       <div className="task-actions">
                         <button onClick={() => handleTaskStatusChange(task.id, 'in_progress')}>
@@ -340,9 +340,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
                       <p className="task-description">{task.description}</p>
                       <div className="task-card-footer">
                         <span className="task-assignee">
-                          {team.find(u => u.id === task.assignee_id)?.name || 'Unassigned'}
+                          {team.find(u => u.id === task.assigneeId)?.name || 'Unassigned'}
                         </span>
-                        <span className="task-due-date">{formatDate(task.due_date)}</span>
+                        <span className="task-due-date">{formatDate(task.dueDate)}</span>
                       </div>
                       <div className="task-actions">
                         <button onClick={() => handleTaskStatusChange(task.id, 'review')}>
@@ -438,7 +438,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
                     />
                     <div className="member-info">
                       <h4>{member.name}</h4>
-                      <p className="member-role">{member.role.replace('_', ' ')}</p>
+                      <p className="member-role">{member.role?.replace('_', ' ')}</p>
                       <p className="member-position">{member.position}</p>
                       <p className="member-contact">
                         <i className="fas fa-envelope"></i> {member.email}
@@ -495,8 +495,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
                 <label htmlFor="task-assignee">Assignee</label>
                 <select 
                   id="task-assignee"
-                  value={newTask.assignee_id} 
-                  onChange={(e) => setNewTask({...newTask, assignee_id: e.target.value})}
+                  value={newTask.assigneeId} 
+                  onChange={(e) => setNewTask({...newTask, assigneeId: e.target.value})}
                 >
                   <option value="">Select Assignee</option>
                   {team.map(member => (
@@ -521,8 +521,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({
                 <input 
                   id="task-due-date"
                   type="date" 
-                  value={newTask.due_date} 
-                  onChange={(e) => setNewTask({...newTask, due_date: e.target.value})}
+                  value={newTask.dueDate} 
+                  onChange={(e) => setNewTask({...newTask, dueDate: e.target.value})}
                   required
                 />
               </div>

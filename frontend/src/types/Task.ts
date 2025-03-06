@@ -50,4 +50,5 @@ export interface TaskStatistics {
   todo: number;
   blocked: number;
   overdue: number;
+  review: number;
 } 

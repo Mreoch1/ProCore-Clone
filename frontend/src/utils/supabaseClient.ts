@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { User } from '../types/User';
-import { Project, ProjectMember, ProjectDocument } from '../types/Project';
+import { Project, ProjectMember } from '../types/Project';
 import { Task, TaskComment, TaskAttachment } from '../types/Task';
 import { Document } from '../types/Document';
 
@@ -16,48 +16,32 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Authentication functions
 export const signIn = async (email: string, password: string) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    return { data, error };
+  } catch (error: any) {
+    return { data: null, error };
+  }
 };
 
 export const signUp = async (email: string, password: string, userData: Partial<User>) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: userData,
-    },
-  });
-  
-  if (error) throw error;
-  
-  // Create user profile in the profiles table
-  if (data.user) {
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert([
-        {
-          id: data.user.id,
-          name: userData.name,
-          email: email,
-          role: userData.role || 'team_member',
-          avatar_url: userData.avatarUrl,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ]);
-
-    if (profileError) {
-      console.error('Error creating user profile:', profileError);
-    }
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userData
+      }
+    });
+    
+    return { data, error };
+  } catch (error: any) {
+    return { data: null, error };
   }
-  
-  return data;
 };
 
 export const signOut = async () => {
@@ -66,19 +50,23 @@ export const signOut = async () => {
 };
 
 export const resetPassword = async (email: string) => {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
-  });
-  
-  if (error) throw error;
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email);
+    return { data, error };
+  } catch (error: any) {
+    return { data: null, error };
+  }
 };
 
 export const updatePassword = async (newPassword: string) => {
-  const { error } = await supabase.auth.updateUser({
-    password: newPassword,
-  });
-  
-  if (error) throw error;
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    return { data, error };
+  } catch (error: any) {
+    return { data: null, error };
+  }
 };
 
 export const getCurrentUser = async (): Promise<User | null> => {
@@ -444,7 +432,7 @@ export const createTask = async (task: Partial<Task>): Promise<Task | null> => {
 
 export const updateTask = async (id: string, task: Partial<Task>): Promise<Task | null> => {
   // Map Task type to database fields
-  const dbTask = {
+  const dbTask: any = {
     title: task.title,
     description: task.description,
     project_id: task.projectId,
@@ -543,7 +531,7 @@ export const addTaskAttachment = async (taskId: string, userId: string, file: Fi
   const fileName = `${Date.now()}_${file.name}`;
   const filePath = `task-attachments/${taskId}/${fileName}`;
   
-  const { data: fileData, error: uploadError } = await supabase.storage
+  const { error: uploadError } = await supabase.storage
     .from('attachments')
     .upload(filePath, file);
   

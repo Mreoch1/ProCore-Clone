@@ -42,7 +42,7 @@ const ResetPasswordPage: React.FC = () => {
     setError(null);
 
     try {
-      const { error } = await updatePassword(token, password);
+      const { error } = await updatePassword(password);
       
       if (error) {
         setError(error.message);

@@ -38,13 +38,13 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [newProject, setNewProject] = useState<Partial<Project>>({
     name: '',
     description: '',
-    client: '',
+    clientName: '',
     location: '',
     status: 'planning',
-    start_date: '',
-    end_date: '',
+    startDate: '',
+    endDate: '',
     budget: 0,
-    team_members: []
+    teamMembers: []
   });
 
   // Generate activity feed from tasks, documents, and projects
@@ -53,14 +53,14 @@ const Dashboard: React.FC<DashboardProps> = ({
     
     // Add recent tasks
     tasks.slice(0, 5).forEach(task => {
-      const user = team.find(u => u.id === task.assignee_id)?.name || 'Unknown User';
+      const user = team.find(u => u.id === task.assigneeId)?.name || 'Unknown User';
       activity.push({
         id: `task-${task.id}`,
         type: 'task',
         action: 'updated',
         item: task.title,
         user,
-        time: task.updated_at || task.created_at || new Date().toISOString()
+        time: task.updatedAt || task.createdAt || new Date().toISOString()
       });
     });
     
@@ -85,7 +85,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         action: 'created',
         item: project.name,
         user: 'System',
-        time: project.created_at || new Date().toISOString()
+        time: project.createdAt || new Date().toISOString()
       });
     });
     
@@ -103,13 +103,13 @@ const Dashboard: React.FC<DashboardProps> = ({
     setNewProject({
       name: '',
       description: '',
-      client: '',
+      clientName: '',
       location: '',
       status: 'planning',
-      start_date: '',
-      end_date: '',
+      startDate: '',
+      endDate: '',
       budget: 0,
-      team_members: []
+      teamMembers: []
     });
     setShowNewProjectModal(false);
   };
@@ -266,7 +266,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                       <div className="task-title">{task.title}</div>
                       <div className="task-meta">
                         <span className="task-project">
-                          {projects.find(p => p.id === task.project_id)?.name || 'Unknown Project'}
+                          {projects.find(p => p.id === task.projectId)?.name || 'Unknown Project'}
                         </span>
                         <span className="task-status" data-status={task.status}>
                           {task.status.replace('_', ' ')}
@@ -287,7 +287,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <h3>Project Progress</h3>
             <div className="progress-list">
               {projects.slice(0, 4).map(project => {
-                const projectTasks = tasks.filter(t => t.project_id === project.id);
+                const projectTasks = tasks.filter(t => t.projectId === project.id);
                 const completedTasks = projectTasks.filter(t => t.status === 'completed').length;
                 const progressPercent = projectTasks.length > 0 
                   ? Math.round((completedTasks / projectTasks.length) * 100) 
@@ -311,7 +311,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                       ></div>
                     </div>
                     <div className="progress-meta">
-                      <span className="progress-client">{project.client}</span>
+                      <span className="progress-client">{project.clientName}</span>
                       <span className="progress-status" data-status={project.status}>
                         {project.status.replace('_', ' ')}
                       </span>
@@ -356,8 +356,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <input 
                   id="project-client"
                   type="text" 
-                  value={newProject.client} 
-                  onChange={(e) => setNewProject({...newProject, client: e.target.value})}
+                  value={newProject.clientName} 
+                  onChange={(e) => setNewProject({...newProject, clientName: e.target.value})}
                 />
               </div>
               <div className="form-group">
@@ -374,8 +374,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <input 
                   id="project-start-date"
                   type="date" 
-                  value={newProject.start_date} 
-                  onChange={(e) => setNewProject({...newProject, start_date: e.target.value})}
+                  value={newProject.startDate} 
+                  onChange={(e) => setNewProject({...newProject, startDate: e.target.value})}
                 />
               </div>
               <div className="form-group">
@@ -383,8 +383,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <input 
                   id="project-end-date"
                   type="date" 
-                  value={newProject.end_date} 
-                  onChange={(e) => setNewProject({...newProject, end_date: e.target.value})}
+                  value={newProject.endDate} 
+                  onChange={(e) => setNewProject({...newProject, endDate: e.target.value})}
                 />
               </div>
               <div className="form-group">

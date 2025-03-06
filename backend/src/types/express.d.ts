@@ -17,7 +17,3 @@ declare module 'express-serve-static-core' {
     (req: Request, res: Response, next: NextFunction): any;
   }
 }
-
-declare module 'express-serve-static-core' {
-  interface RequestHandler {
- 

@@ -1,0 +1,112 @@
+/* LegalPage.css - Styling for legal pages like Terms of Service, Privacy Policy, etc. */
+
+.legal-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  color: #333;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.6;
+}
+
+.legal-container {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 2.5rem;
+}
+
+.legal-page h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.last-updated {
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+.legal-page section {
+  margin-bottom: 2.5rem;
+}
+
+.legal-page h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #3498db;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.legal-page p {
+  margin-bottom: 1rem;
+}
+
+.legal-page ul, .legal-page ol {
+  margin-bottom: 1.5rem;
+  padding-left: 2rem;
+}
+
+.legal-page li {
+  margin-bottom: 0.5rem;
+}
+
+.legal-page a {
+  color: #3498db;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.legal-page a:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
+.legal-page strong {
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .legal-page {
+    padding: 1.5rem 1rem;
+  }
+  
+  .legal-container {
+    padding: 1.5rem;
+  }
+  
+  .legal-page h1 {
+    font-size: 1.8rem;
+  }
+  
+  .legal-page h2 {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .legal-page {
+    padding: 1rem 0.75rem;
+  }
+  
+  .legal-container {
+    padding: 1.25rem;
+    border-radius: 6px;
+  }
+  
+  .legal-page h1 {
+    font-size: 1.6rem;
+  }
+  
+  .legal-page h2 {
+    font-size: 1.2rem;
+  }
+} 

@@ -2,17 +2,17 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  projectId: string;
+  project_id: string;
   status: 'todo' | 'in_progress' | 'review' | 'completed' | 'blocked';
   priority: 'low' | 'medium' | 'high' | 'urgent';
-  assigneeId?: string;
-  dueDate?: string;
-  estimatedHours?: number;
-  actualHours?: number;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  completedAt?: string;
+  assignee_id?: string;
+  due_date?: string;
+  estimated_hours?: number;
+  actual_hours?: number;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  completed_at?: string;
   progress: number;
   comments?: TaskComment[];
   attachments?: TaskAttachment[];
@@ -21,25 +21,25 @@ export interface Task {
 export interface TaskComment {
   id: string;
   text: string;
-  userId: string;
-  userName: string;
-  createdAt: string;
+  user_id: string;
+  user_name: string;
+  created_at: string;
 }
 
 export interface TaskAttachment {
   id: string;
   name: string;
   url: string;
-  uploadedBy: string;
-  uploadedAt: string;
+  uploaded_by: string;
+  uploaded_at: string;
 }
 
 export interface TaskFilter {
   status?: string[];
   priority?: string[];
-  assigneeId?: string[];
-  dueDate?: string;
-  projectId?: string;
+  assignee_id?: string[];
+  due_date?: string;
+  project_id?: string;
   searchTerm?: string;
 }
 

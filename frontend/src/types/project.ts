@@ -1,20 +1,20 @@
 export interface ProjectMember {
   id: string;
-  userId: string;
-  projectId: string;
+  user_id: string;
+  project_id: string;
   role: string;
-  joinedAt: string;
+  joined_at: string;
 }
 
 export interface ProjectDocument {
   id: string;
-  projectId: string;
+  project_id: string;
   name: string;
   url: string;
   type: string;
   size?: number;
-  uploadedBy: string;
-  uploadedAt: string;
+  uploaded_by: string;
+  uploaded_at: string;
 }
 
 export interface Project {
@@ -22,16 +22,16 @@ export interface Project {
   name: string;
   description?: string;
   status: string;
-  startDate?: string;
-  endDate?: string;
+  start_date?: string;
+  end_date?: string;
   budget?: number;
   progress: number;
-  createdBy: string;
-  createdAt: string;
-  updatedAt?: string;
-  clientId?: string;
-  clientName?: string;
-  teamMembers?: ProjectMember[];
+  created_by: string;
+  created_at: string;
+  updated_at?: string;
+  client_id?: string;
+  client?: string;
+  team_members?: string[];
   documents?: ProjectDocument[];
   tags?: string[];
   location?: string;

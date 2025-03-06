@@ -47,6 +47,7 @@ const TasksPage: React.FC<TasksPageProps> = () => {
     review: 0,
     todo: 0,
     overdue: 0,
+    blocked: 0,
   });
 
   useEffect(() => {
@@ -185,6 +186,7 @@ const TasksPage: React.FC<TasksPageProps> = () => {
         today.setHours(0, 0, 0, 0);
         return dueDate < today && task.status !== 'completed';
       }).length,
+      blocked: 0, // Assuming blocked is not available in the current task data
     };
 
     setTaskStats(stats);

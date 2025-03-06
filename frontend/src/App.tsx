@@ -7,6 +7,7 @@ import { User } from './types/User';
 import Navigation from './components/Navigation';
 import Header from './components/Header';
 import LoadingSpinner from './components/LoadingSpinner';
+import Footer from './components/Footer';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -21,6 +22,8 @@ import TasksPage from './pages/TasksPage';
 import SettingsPage from './pages/SettingsPage';
 import TermsPage from './pages/TermsPage';
 import PrivacyPage from './pages/PrivacyPage';
+import ContactPage from './pages/ContactPage';
+import AboutPage from './pages/AboutPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Styles
@@ -68,21 +71,29 @@ function App() {
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="/terms" element={<TermsPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/about" element={<AboutPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </div>
+              <Footer />
             </div>
           </>
         ) : (
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
+          <>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+            <Footer />
+          </>
         )}
       </div>
     </Router>

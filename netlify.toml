@@ -1,46 +1,55 @@
 [build]
+  base = "frontend"
   command = "npm run build"
-  publish = "build"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
+  # These will be overridden by the Netlify UI environment variables
+  VITE_API_URL = "https://procore-clone-api.netlify.app/api"
+  # Don't put actual keys here, use Netlify UI environment variables instead
+  # VITE_SUPABASE_URL = "your-supabase-url"
+  # VITE_SUPABASE_ANON_KEY = "your-supabase-anon-key"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://procore-clone-api.netlify.app/api/:splat"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-[functions]
-  directory = "functions"
-
-# Force HTTPS
 [[redirects]]
   from = "http://*"
   to = "https://:splat"
   status = 301
   force = true
 
-[dev]
-  command = "npm run dev"
-  port = 3000
-  targetPort = 5173
-  publish = "dist"
-  autoLaunch = true
-
-# Cache control for assets
 [[headers]]
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Enhanced Security headers
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data: https://*.supabase.co https://i.pravatar.cc; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'none'; upgrade-insecure-requests;"
+    Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
-    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data: https://*.supabase.co https://i.pravatar.cc; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'none'; upgrade-insecure-requests;"
-    Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()" 
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+
+[functions]
+  directory = "functions"
+
+[dev]
+  command = "npm run dev"
+  port = 3000
+  targetPort = 5173
+  publish = "dist"
+  autoLaunch = true 

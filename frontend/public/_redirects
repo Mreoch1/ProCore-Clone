@@ -1,0 +1,6 @@
+# Netlify redirects file
+# Redirect API requests to the backend
+/api/*  https://procore-clone-api.netlify.app/api/:splat  200
+
+# Handle client-side routing
+/*  /index.html  200 

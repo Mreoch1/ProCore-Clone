@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: yourusername/recon-frontend:latest
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      - NODE_ENV=production
+    networks:
+      - recon-network
+
+  backend:
+    image: yourusername/recon-backend:latest
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - JWT_SECRET=${JWT_SECRET}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - CORS_ORIGIN=${FRONTEND_URL}
+    volumes:
+      - recon-uploads:/app/uploads
+    networks:
+      - recon-network
+
+networks:
+  recon-network:
+    driver: bridge
+
+volumes:
+  recon-uploads:
+    driver: local 

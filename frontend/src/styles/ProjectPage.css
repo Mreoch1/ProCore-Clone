@@ -1,0 +1,89 @@
+.project-page {
+  padding: 1.5rem;
+}
+
+.project-page-header {
+  margin-bottom: 1.5rem;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: var(--text-color);
+}
+
+.back-button i {
+  font-size: 0.75rem;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 1rem;
+  color: #64748b;
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.error-container h2 {
+  color: #ef4444;
+  margin-bottom: 1rem;
+}
+
+.error-container .back-button {
+  margin-top: 1.5rem;
+}
+
+/* Not Found State */
+.not-found-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.not-found-container h2 {
+  color: var(--text-color);
+  margin-bottom: 0.5rem;
+}
+
+.not-found-container p {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .project-page {
+    padding: 1rem;
+  }
+} 

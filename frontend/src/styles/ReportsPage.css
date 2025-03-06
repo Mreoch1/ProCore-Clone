@@ -1,0 +1,581 @@
+.reports-page {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.reports-header {
+  margin-bottom: 24px;
+}
+
+.reports-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.reports-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+}
+
+.report-selector,
+.project-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-selector label,
+.project-selector label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  white-space: nowrap;
+}
+
+.report-selector select,
+.project-selector select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+.report-container {
+  background-color: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+.report-content {
+  padding: 20px;
+}
+
+/* Project Progress Report Styles */
+.progress-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.progress-card {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.progress-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.progress-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: white;
+  text-transform: capitalize;
+}
+
+.status-badge.status-not_started {
+  background-color: #9e9e9e;
+}
+
+.status-badge.status-in_progress {
+  background-color: #2196f3;
+}
+
+.status-badge.status-completed {
+  background-color: #4caf50;
+}
+
+.status-badge.status-on_hold {
+  background-color: #ff9800;
+}
+
+.status-badge.status-cancelled {
+  background-color: #f44336;
+}
+
+.progress-indicator {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill[data-status="not_started"] {
+  background-color: #9e9e9e;
+}
+
+.progress-fill[data-status="in_progress"] {
+  background-color: #2196f3;
+}
+
+.progress-fill[data-status="completed"] {
+  background-color: #4caf50;
+}
+
+.progress-fill[data-status="on_hold"] {
+  background-color: #ff9800;
+}
+
+.progress-fill[data-status="cancelled"] {
+  background-color: #f44336;
+}
+
+.progress-percentage {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.progress-details {
+  padding: 16px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.detail-item:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.detail-value.overdue {
+  color: #f44336;
+}
+
+/* Task Status Report Styles */
+.report-section {
+  margin-bottom: 32px;
+}
+
+.report-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+}
+
+.chart-container {
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chart-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chart-label {
+  width: 100px;
+  font-size: 14px;
+  color: #555;
+  text-transform: capitalize;
+}
+
+.chart-bar-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-bar {
+  height: 24px;
+  border-radius: 4px;
+  min-width: 4px;
+  transition: width 0.3s ease;
+}
+
+.chart-bar.status-not_started {
+  background-color: #9e9e9e;
+}
+
+.chart-bar.status-in_progress {
+  background-color: #2196f3;
+}
+
+.chart-bar.status-completed {
+  background-color: #4caf50;
+}
+
+.chart-bar.status-on_hold {
+  background-color: #ff9800;
+}
+
+.chart-bar.status-cancelled {
+  background-color: #f44336;
+}
+
+.chart-bar.priority-high {
+  background-color: #f44336;
+}
+
+.chart-bar.priority-medium {
+  background-color: #ff9800;
+}
+
+.chart-bar.priority-low {
+  background-color: #4caf50;
+}
+
+.chart-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  min-width: 30px;
+  text-align: right;
+}
+
+.overdue-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.overdue-task-item {
+  background-color: #fff4f4;
+  border: 1px solid #ffcdd2;
+  border-left: 4px solid #f44336;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.task-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.priority-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 10px;
+  color: white;
+  text-transform: capitalize;
+}
+
+.priority-badge.priority-high {
+  background-color: #f44336;
+}
+
+.priority-badge.priority-medium {
+  background-color: #ff9800;
+}
+
+.priority-badge.priority-low {
+  background-color: #4caf50;
+}
+
+.due-date, .assignee {
+  color: #666;
+}
+
+/* Team Workload Report Styles */
+.workload-table-container {
+  overflow-x: auto;
+}
+
+.workload-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.workload-table th,
+.workload-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.workload-table th {
+  background-color: #f5f5f5;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+}
+
+.workload-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.role-badge {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: white;
+  text-transform: capitalize;
+}
+
+.role-badge.role-project_manager {
+  background-color: #0063a3;
+}
+
+.role-badge.role-team_member {
+  background-color: #4caf50;
+}
+
+.role-badge.role-client {
+  background-color: #ff9800;
+}
+
+.role-badge.role-subcontractor {
+  background-color: #9c27b0;
+}
+
+.role-badge.role-consultant {
+  background-color: #2196f3;
+}
+
+.workload-table td.overdue {
+  color: #f44336;
+  font-weight: 500;
+}
+
+.completion-rate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.completion-bar {
+  flex: 1;
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.completion-fill {
+  height: 100%;
+  background-color: #4caf50;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.completion-percentage {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  min-width: 40px;
+  text-align: right;
+}
+
+/* Budget Tracking Report Styles */
+.budget-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.budget-card {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.budget-card.over-budget {
+  border-color: #ffcdd2;
+}
+
+.budget-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.budget-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.over-budget-badge {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background-color: #f44336;
+  color: white;
+}
+
+.budget-amount {
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+.currency {
+  font-size: 18px;
+  color: #666;
+  vertical-align: top;
+}
+
+.amount {
+  font-size: 28px;
+  font-weight: 500;
+  color: #333;
+}
+
+.budget-progress {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.budget-bar {
+  height: 8px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.budget-fill {
+  height: 100%;
+  background-color: #4caf50;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.budget-fill.over-budget {
+  background-color: #f44336;
+}
+
+.budget-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+}
+
+.budget-details {
+  padding: 16px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .reports-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .report-selector,
+  .project-selector {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .report-selector select,
+  .project-selector select {
+    width: 100%;
+  }
+  
+  .progress-cards,
+  .budget-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .chart-label {
+    width: auto;
+  }
+  
+  .chart-bar-container {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .workload-table th,
+  .workload-table td {
+    padding: 8px;
+    font-size: 12px;
+  }
+  
+  .task-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+} 

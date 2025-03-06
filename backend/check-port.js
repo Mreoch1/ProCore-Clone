@@ -1,0 +1,1 @@
+console.log('Checking port 5001'); require('http').createServer().listen(5001, () => { console.log('Port 5001 is available'); process.exit(0); }).on('error', () => { console.log('Port 5001 is in use'); process.exit(1); });

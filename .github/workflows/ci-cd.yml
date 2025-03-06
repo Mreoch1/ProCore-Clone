@@ -21,10 +21,19 @@ jobs:
         cache-dependency-path: frontend/package-lock.json
     
     - name: Install dependencies
-      run: cd frontend && npm install --legacy-peer-deps
+      working-directory: ./frontend
+      run: |
+        echo "Installing dependencies..."
+        npm install --legacy-peer-deps
+        echo "Dependencies installed successfully"
     
     - name: Build
-      run: cd frontend && npm run build
+      working-directory: ./frontend
+      run: |
+        echo "Starting build process..."
+        npm run build
+        echo "Build completed successfully"
+        ls -la dist/
       env:
         VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -32,7 +41,7 @@ jobs:
     - name: Deploy to Netlify
       uses: nwtgck/actions-netlify@v2.0
       with:
-        publish-dir: './frontend/dist'
+        publish-dir: 'frontend/dist'
         production-branch: main
         github-token: ${{ secrets.GITHUB_TOKEN }}
         deploy-message: "Deploy from GitHub Actions"

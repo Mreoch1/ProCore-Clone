@@ -15,6 +15,8 @@ import SettingsPage from './pages/SettingsPage'
 import HelpPage from './pages/HelpPage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
+import TermsPage from './pages/TermsPage'
+import PrivacyPage from './pages/PrivacyPage'
 import { Project, Task, Document, User } from './types/project'
 import { 
   fetchProjects, 
@@ -31,7 +33,7 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<'dashboard' | 'project' | 'tasks' | 'documents' | 'team' | 'reports' | 'schedule' | 'budget' | 'settings' | 'help' | '404'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'project' | 'tasks' | 'documents' | 'team' | 'reports' | 'schedule' | 'budget' | 'settings' | 'help' | 'terms' | 'privacy' | '404'>('dashboard');
   const [activeProject, setActiveProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -245,6 +247,8 @@ function App() {
                 activeView === 'budget' ? 'Budget' :
                 activeView === 'settings' ? 'Settings' :
                 activeView === 'help' ? 'Help Center' :
+                activeView === 'terms' ? 'Terms of Service' :
+                activeView === 'privacy' ? 'Privacy Policy' :
                 'Not Found'
               } 
               user={currentUser}
@@ -260,6 +264,8 @@ function App() {
                   <Dashboard 
                     projects={projects} 
                     tasks={tasks} 
+                    documents={documents}
+                    team={team}
                     onProjectSelect={handleProjectSelect} 
                   />
                 )}
@@ -269,6 +275,7 @@ function App() {
                     project={activeProject} 
                     tasks={tasks.filter(task => task.project_id === activeProject.id)} 
                     documents={documents.filter(doc => doc.project_id === activeProject.id)}
+                    team={team}
                     onTaskUpdate={handleTaskUpdate}
                     onDocumentUpload={handleDocumentUpload}
                   />
@@ -277,8 +284,6 @@ function App() {
                 {activeView === 'tasks' && (
                   <TasksPage 
                     tasks={tasks} 
-                    projects={projects} 
-                    team={team} 
                     onTaskUpdate={handleTaskUpdate} 
                   />
                 )}
@@ -286,9 +291,7 @@ function App() {
                 {activeView === 'documents' && (
                   <DocumentsPage 
                     documents={documents} 
-                    projects={projects} 
                     onDocumentUpload={handleDocumentUpload} 
-                    currentUser={currentUser}
                   />
                 )}
                 
@@ -296,20 +299,19 @@ function App() {
                   <TeamPage 
                     team={team} 
                     onTeamMemberUpdate={handleTeamMemberUpdate} 
-                    currentUser={currentUser}
                   />
                 )}
                 
                 {activeView === 'reports' && (
-                  <ReportsPage projects={projects} tasks={tasks} />
+                  <ReportsPage projects={projects} tasks={tasks} team={team} />
                 )}
                 
                 {activeView === 'schedule' && (
-                  <SchedulePage projects={projects} tasks={tasks} />
+                  <SchedulePage projects={projects} tasks={tasks} team={team} />
                 )}
                 
                 {activeView === 'budget' && (
-                  <BudgetPage projects={projects} currentUser={currentUser} />
+                  <BudgetPage projects={projects} />
                 )}
                 
                 {activeView === 'settings' && (
@@ -320,7 +322,15 @@ function App() {
                 )}
                 
                 {activeView === 'help' && (
-                  <HelpPage onSupportContact={handleSupportContact} />
+                  <HelpPage onContactSupport={handleSupportContact} />
+                )}
+                
+                {activeView === 'terms' && (
+                  <TermsPage />
+                )}
+                
+                {activeView === 'privacy' && (
+                  <PrivacyPage />
                 )}
                 
                 {activeView === '404' && (

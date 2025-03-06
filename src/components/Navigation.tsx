@@ -3,15 +3,15 @@ import '../styles/Navigation.css';
 import { User } from '../types/project';
 
 interface NavigationProps {
-  activeView: 'dashboard' | 'project' | 'tasks' | 'documents' | 'team' | 'reports' | 'schedule' | 'budget' | 'settings' | 'help';
-  onNavigationChange: (view: 'dashboard' | 'project' | 'tasks' | 'documents' | 'team' | 'reports' | 'schedule' | 'budget' | 'settings' | 'help') => void;
+  activeView: 'dashboard' | 'project' | 'tasks' | 'documents' | 'team' | 'reports' | 'schedule' | 'budget' | 'settings' | 'help' | 'terms' | 'privacy';
+  onNavChange: (view: 'dashboard' | 'project' | 'tasks' | 'documents' | 'team' | 'reports' | 'schedule' | 'budget' | 'settings' | 'help' | 'terms' | 'privacy') => void;
   onLogout: () => void;
   currentUser: User | null;
 }
 
 const Navigation: React.FC<NavigationProps> = ({ 
   activeView = 'dashboard', 
-  onNavigationChange = () => {},
+  onNavChange = () => {},
   onLogout = () => {},
   currentUser
 }) => {
@@ -26,8 +26,8 @@ const Navigation: React.FC<NavigationProps> = ({
     setShowUserMenu(!showUserMenu);
   };
 
-  const handleNavClick = (view: 'dashboard' | 'project' | 'tasks' | 'documents' | 'team' | 'reports' | 'schedule' | 'budget' | 'settings' | 'help') => {
-    onNavigationChange(view);
+  const handleNavClick = (view: 'dashboard' | 'project' | 'tasks' | 'documents' | 'team' | 'reports' | 'schedule' | 'budget' | 'settings' | 'help' | 'terms' | 'privacy') => {
+    onNavChange(view);
   };
 
   const handleLogout = () => {
@@ -161,6 +161,22 @@ const Navigation: React.FC<NavigationProps> = ({
           <i className="icon">❓</i>
           <span className="nav-text">Help</span>
         </li>
+        <div className="legal-links">
+          <li 
+            className={activeView === 'terms' ? 'active' : ''} 
+            onClick={() => handleNavClick('terms')}
+          >
+            <i className="icon">📜</i>
+            <span className="nav-text">Terms</span>
+          </li>
+          <li 
+            className={activeView === 'privacy' ? 'active' : ''} 
+            onClick={() => handleNavClick('privacy')}
+          >
+            <i className="icon">🔒</i>
+            <span className="nav-text">Privacy</span>
+          </li>
+        </div>
       </div>
     </nav>
   );

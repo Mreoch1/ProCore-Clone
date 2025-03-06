@@ -173,10 +173,40 @@
 }
 
 .nav-footer {
-  border-top: 1px solid #34495e;
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  margin-top: auto;
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.nav-footer li {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.legal-links {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.legal-links li {
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.legal-links li:hover {
+  opacity: 1;
+  background-color: var(--hover-bg-color);
+}
+
+.legal-links .icon {
+  font-size: 1rem;
+  margin-right: 0.5rem;
 }
 
 .nav-menu li.disabled {
